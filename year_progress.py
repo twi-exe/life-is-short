@@ -21,15 +21,17 @@ days_elapsed = (current_date.date() - year_start).days
 # Calculate percentage complete
 percentage_complete = (days_elapsed / total_days) * 100
 
-# Create figure and axis
+plt.style.use('dark_background')
 fig, ax = plt.subplots(figsize=(10, 2))
+fig.patch.set_facecolor('#181818')
+ax.set_facecolor('#181818')
 
-# Create progress bar
-ax.barh(0, width=days_elapsed, height=0.5, color='#2ecc71', label=f'Completed: {percentage_complete:.1f}%')
-ax.barh(0, width=total_days, height=0.5, color='#ecf0f1', alpha=0.3, label='Remaining')
+# White progress bar
+ax.barh(0, width=days_elapsed, height=0.5, color='white', label=f'{percentage_complete:.1f}%')
+ax.barh(0, width=total_days, height=0.5, color='#444', alpha=0.3, label='Remaining')
 
-# Add vertical line for today
-ax.axvline(x=days_elapsed, color='#e74c3c', linestyle='--', alpha=0.7)
+# Red line for today
+ax.axvline(x=days_elapsed, color='#ff5555', linestyle='--', alpha=0.8)
 
 # Format axis
 ax.xaxis.set_major_locator(mdates.MonthLocator())
@@ -37,13 +39,13 @@ ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
 ax.set_xlim(0, total_days)
 ax.set_ylim(-0.5, 0.5)
 ax.set_yticks([])
-ax.set_title(f"2025 Progress: {percentage_complete:.1f}% Complete", fontweight='bold')
+ax.set_title(f"2025: {percentage_complete:.1f}% | {days_elapsed}d elapsed | {total_days-days_elapsed}d left", color='white', fontweight='bold')
 
 # Add annotations
 ax.text(days_elapsed + 5, 0, f"Today: {current_date.strftime('%b %d')}", 
-        va='center', ha='left', color='#e74c3c', fontweight='bold')
-ax.text(5, 0, "Start: Jan 01", va='center', ha='left', fontsize=8)
-ax.text(total_days - 5, 0, "End: Dec 31", va='center', ha='right', fontsize=8)
+        va='center', ha='left', color='#ff5555', fontweight='bold')
+ax.text(5, 0, "Start: Jan 01", va='center', ha='left', fontsize=8, color='white')
+ax.text(total_days - 5, 0, "End: Dec 31", va='center', ha='right', fontsize=8, color='white')
 
 # Legend
 ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), ncol=2)
