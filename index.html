@@ -1,1 +1,118 @@
-<html><body><h1>Year Progress</h1></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Year Progress</title>
+  <style>
+    body {
+      background: #f7f7fa;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #222;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      margin-bottom: 2rem;
+      font-size: 2.5rem;
+      letter-spacing: 1px;
+    }
+    .progress-container {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+      padding: 2rem 3rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .progress-bar-bg {
+      width: 400px;
+      height: 32px;
+      background: #e0e0e0;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      position: relative;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4f8cff 0%, #00e6c3 100%);
+      border-radius: 16px 0 0 16px;
+      transition: width 0.7s cubic-bezier(.4,0,.2,1);
+    }
+    .progress-text {
+      font-size: 1.2rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+    .progress-img {
+      margin-top: 1.5rem;
+      width: 400px;
+      height: 32px;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      background: #e0e0e0;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h1>Year Progress</h1>
+  <div class="progress-container">
+    <div class="progress-text" id="progressText"></div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+    <img src="" alt="Year Progress PNG" class="progress-img" id="progressImg" />
+  </div>
+  <script>
+    // Calculate year progress
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 1);
+    const end = new Date(now.getFullYear() + 1, 0, 1);
+    const progress = ((now - start) / (end - start)) * 100;
+    document.getElementById('progressText').textContent =
+      `Year is ${progress.toFixed(2)}% complete`;
+
+    // Animate progress bar
+    document.getElementById('progressBar').style.width = progress + '%';
+
+    // Generate PNG of progress bar using canvas
+    const canvas = document.createElement('canvas');
+    canvas.width = 400;
+    canvas.height = 32;
+    const ctx = canvas.getContext('2d');
+    // Background
+    ctx.fillStyle = '#e0e0e0';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Progress fill
+    const grad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+    grad.addColorStop(0, '#4f8cff');
+    grad.addColorStop(1, '#00e6c3');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width * (progress / 100), canvas.height);
+    // Rounded corners
+    ctx.globalCompositeOperation = 'destination-in';
+    ctx.beginPath();
+    ctx.moveTo(16, 0);
+    ctx.lineTo(canvas.width - 16, 0);
+    ctx.quadraticCurveTo(canvas.width, 0, canvas.width, 16);
+    ctx.lineTo(canvas.width, canvas.height - 16);
+    ctx.quadraticCurveTo(canvas.width, canvas.height, canvas.width - 16, canvas.height);
+    ctx.lineTo(16, canvas.height);
+    ctx.quadraticCurveTo(0, canvas.height, 0, canvas.height - 16);
+    ctx.lineTo(0, 16);
+    ctx.quadraticCurveTo(0, 0, 16, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    // Set PNG as image src
+    document.getElementById('progressImg').src = canvas.toDataURL('image/png');
+  </script>
+</body>
+</html>
