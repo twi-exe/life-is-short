@@ -3,31 +3,93 @@
 <head>
   <meta charset="UTF-8">
   <title>Life is Short – Progress Tracker</title>
+  <title>Life is Short – Progress Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       font-family: "Segoe UI", Arial, sans-serif;
-      background: #f5f5f5;
+      background: #f6f8fa;
       color: #333;
       margin: 0;
       padding: 0;
+      min-height: 100vh;
     }
-    header {
-      background: #4A90E2;
-      color: white;
-      padding: 2rem 1rem;
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 80px;
+      background: #fff;
+      border-right: 1px solid #e0e0e0;
+      box-shadow: 2px 0 8px rgba(80, 227, 194, 0.04);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 2rem;
+      z-index: 10;
+    }
+    .refresh-btn {
+      background: none;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      width: 2.2rem;
+      height: 2.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 2rem;
+      transition: background 0.2s;
+      box-shadow: none;
+      padding: 0;
+    }
+    .refresh-btn svg {
+      display: block;
+    }
+    .refresh-btn:hover svg path,
+    .refresh-btn:hover svg polyline {
+      stroke: #357abd;
+    }
+    .refresh-btn:active svg {
+      opacity: 0.7;
+    }
+    .sidebar-title {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      font-size: 1.1rem;
+      color: #357abd;
+      margin-bottom: 2rem;
+      letter-spacing: 0.08em;
+      font-weight: 600;
       text-align: center;
     }
     main {
-      max-width: 600px;
-      margin: 2rem auto;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      padding: 2rem;
+      margin-left: 100px;
+      max-width: 1200px;  /* Increased from 800px */
+      width: calc(100% - 140px);
+      margin-top: 2rem;
+      padding: 0 20px;
     }
-    h1 {
-      margin-bottom: 0.5rem;
+    .datetime {
+      font-size: 1rem;
+      color: #357abd;
+      margin-bottom: 1.2rem;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      text-align: left;
+    }
+    .progress-group {
+      margin-bottom: 1.5rem;
+    }
+    .progress-label {
+      font-weight: 500;
+      margin-bottom: 0.3rem;
+      font-size: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #357abd;
     }
     .progress-group {
       margin-bottom: 2rem;
@@ -39,43 +101,307 @@
       text-align: right;
     }
     .progress-bar-bg {
-      width: 100%;
+      width: calc(100% - 70px); /* Make room for percentage */
       background: #e0e0e0;
       border-radius: 30px;
+      height: 18px;
+      margin-bottom: 0.3rem;
       height: 28px;
       margin-bottom: 0.7rem;
       position: relative;
+      overflow: hidden;
+      display: inline-block;
     }
     .progress-bar-fill {
-      background: linear-gradient(90deg, #4A90E2 60%, #50E3C2 100%);
+      background: #4A90E2;
       height: 100%;
       border-radius: 30px 0 0 30px;
       width: 0;
-      transition: width 1s;
+      transition: width 1.2s cubic-bezier(.4,2,.3,1);
       position: absolute;
       left: 0; top: 0;
+      display: flex;
+      align-items: center;
+    }
+    .progress-badge {
+      position: absolute;
+      right: -65px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #357abd;
+      font-weight: 600;
+      font-size: 0.95rem;
+      padding: 1px 8px;
+      min-width: 55px;
+      text-align: right;
     }
     .quote {
       font-style: italic;
       color: #666;
-      text-align: center;
+      text-align: left;
       margin-top: 2rem;
-      font-size: 1.1rem;
+      font-size: 1rem;
+      cursor: pointer;
+      user-select: all;
+      transition: background 0.2s, color 0.2s;
+      border-radius: 6px;
+      padding: 0.5rem 0.2rem;
+      border: 1px dashed #4A90E2;
+      background: #f6f8fa;
+      max-width: 90%;
+    }
+    .quote.copied {
+      background: #d1f7c4;
+      color: #2d7a2d;
+      border: 1px solid #b6e7a0;
     }
     footer {
-      text-align: center;
+      max-width: 1200px;
+      width: calc(100% - 140px);
+      margin-left: 100px;
+      padding: 1.2rem 20px;
+    }
+    .goals-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      background: none;
+      box-shadow: none;
+      padding: 0;
+    }
+    .goals-section {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       padding: 1rem;
-      font-size: 0.9rem;
-      color: #aaa;
+    }
+    .goals-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .goals-header h3 {
+      margin: 0;
+      color: #357abd;
+      font-size: 1.1rem;
+    }
+    .goals-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .goal-item {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.8rem;
+      background: #f9f9f9;
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+    }
+    .goal-checkbox {
+      min-width: 18px;
+      height: 18px;
+    }
+    .goal-text {
+      flex: 1;
+      font-size: 0.95rem;
+    }
+    .goal-date {
+      font-size: 0.8rem;
+      color: #666;
+    }
+    .goal-btn {
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 0 0.3rem;
+    }
+    .small-btn {
+      background: #4A90E2;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 0.4rem 0.8rem;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    @media (max-width: 700px) {
+      .sidebar {
+        width: 54px;
+        padding-top: 1rem;
+      }
+      main {
+        margin-left: 62px;
+        width: calc(100% - 82px);
+        padding: 0 10px;
+      }
+      .progress-label {
+        font-size: 0.95rem;
+      }
+      .progress-bar-bg {
+        height: 14px;
+      }
+      .quote {
+        font-size: 0.95rem;
+        margin: 1.5rem 0;
+        padding: 1rem;
+      }
+      footer {
+        margin-left: 62px;
+        width: calc(100% - 82px);
+        padding: 1rem 10px;
+      }
+      .goals-container {
+        margin-top: 1rem;
+        padding: 1rem;
+      }
+      .goals-header h3 {
+        font-size: 1rem;
+      }
+      .goals-list {
+        max-height: 160px;
+      }
+      .goal-item {
+        padding: 0.8rem;
+      }
+    }
+    @media (max-width: 430px) {
+      .sidebar {
+        width: 40px;
+        padding-top: 0.5rem;
+      }
+      main {
+        margin-left: 46px;
+        width: calc(100% - 56px);
+        padding: 0 5px;
+      }
+      .datetime {
+        font-size: 0.85rem;
+        margin-bottom: 1rem;
+      }
+      .progress-group {
+        margin-bottom: 1rem;
+      }
+      .progress-label {
+        font-size: 0.85rem;
+      }
+      .progress-bar-bg {
+        height: 12px;
+        width: calc(100% - 60px);
+      }
+      .progress-badge {
+        font-size: 0.8rem;
+        padding: 1px 6px;
+      }
+      .small-btn {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.8rem;
+      }
+      .goals-list {
+        max-height: 140px;
+      }
+      .goal-item {
+        padding: 0.6rem;
+        font-size: 0.85rem;
+      }
+      .quote {
+        font-size: 0.85rem;
+        padding: 0.8rem;
+        margin: 1rem 0;
+      }
+      footer {
+        font-size: 0.8rem;
+        margin-left: 46px;
+        padding: 0.8rem 5px;
+      }
+    }
+
+    /* Add touch-friendly styles */
+    @media (pointer: coarse) {
+      .refresh-btn {
+        padding: 0.8rem;
+      }
+      .small-btn {
+        min-height: 36px;
+        min-width: 36px;
+      }
+      .goal-item input[type="checkbox"] {
+        min-width: 20px;
+        min-height: 20px;
+      }
+      .quote {
+        padding: 1rem;
+        margin: 1.5rem 0;
+      }
     }
   </style>
+  <!-- Font Awesome for refresh icon -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
+  <div class="sidebar">
+<button class="refresh-btn" id="refresh-btn" title="Refresh progress" aria-label="Refresh">
+  <i class="fa-solid fa-rotate-left" style="color:#888; font-size:22px;"></i>
+</button>
+    <div class="sidebar-title">Life is Short</div>
+  </div>
   <header>
     <h1>Life is Short</h1>
     <p>Year, Month & Week Progress Tracker</p>
   </header>
   <main>
+    <div class="datetime" id="datetime"></div>
+    <div class="progress-group">
+      <div class="progress-label" id="progress-label-year">Loading...</div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-bar-year"></div>
+        <span class="progress-badge" id="progress-badge-year"></span>
+      </div>
+    </div>
+    <div class="progress-group">
+      <div class="progress-label" id="progress-label-month">Loading...</div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-bar-month"></div>
+        <span class="progress-badge" id="progress-badge-month"></span>
+      </div>
+    </div>
+    <div class="progress-group">
+      <div class="progress-label" id="progress-label-week">Loading...</div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-bar-week"></div>
+        <span class="progress-badge" id="progress-badge-week"></span>
+      </div>
+    </div>
+
+    <div class="goals-container">
+      <div class="goals-section">
+        <div class="goals-header">
+          <h3>Daily Goals</h3>
+          <button class="small-btn" onclick="addGoal('daily')">+</button>
+        </div>
+        <div id="daily-goals-list" class="goals-list"></div>
+      </div>
+      
+      <div class="goals-section">
+        <div class="goals-header">
+          <h3>Weekly Goals</h3>
+          <button class="small-btn" onclick="addGoal('weekly')">+</button>
+        </div>
+        <div id="weekly-goals-list" class="goals-list"></div>
+      </div>
+      
+      <div class="goals-section">
+        <div class="goals-header">
+          <h3>Yearly Goals</h3>
+          <button class="small-btn" onclick="addGoal('yearly')">+</button>
+        </div>
+        <div id="yearly-goals-list" class="goals-list"></div>
+      </div>
     <div class="progress-group">
       <div class="progress-label" id="progress-label-year">Loading...</div>
       <div class="progress-bar-bg">
@@ -94,7 +420,8 @@
         <div class="progress-bar-fill" id="progress-bar-week"></div>
       </div>
     </div>
-    <div class="quote" id="quote">
+
+    <div class="quote" id="quote" title="Click to copy quote">
       "The trouble is, you think you have time." – Jack Kornfield
     </div>
   </main>
@@ -103,6 +430,14 @@
   </footer>
 
   <script>
+    // Show current date/time
+    function setDateTime() {
+      const now = new Date();
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+                        hour: '2-digit', minute: '2-digit', second: '2-digit' };
+      document.getElementById('datetime').textContent = now.toLocaleString(undefined, options);
+    }
+
     // Calculate year progress
     function getYearProgress() {
       const now = new Date();
@@ -112,6 +447,72 @@
       return percent;
     }
 
+    // Calculate month progress
+    function getMonthProgress() {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      const percent = ((now - start) / (end - start)) * 100;
+      return percent;
+    }
+
+    // Calculate week progress (Monday is start of week)
+    function getWeekProgress() {
+      const now = new Date();
+      const day = now.getDay(); // 0 = Sunday
+      const daysSinceMonday = (day + 6) % 7;
+      const monday = new Date(now);
+      monday.setDate(now.getDate() - daysSinceMonday);
+      monday.setHours(0,0,0,0);
+      const nextMonday = new Date(monday);
+      nextMonday.setDate(monday.getDate() + 7);
+      const percent = ((now - monday) / (nextMonday - monday)) * 100;
+      return percent;
+    }
+
+    function setProgress(animated = true) {
+      // Year
+      const yearPercent = getYearProgress();
+      document.getElementById('progress-label-year').textContent =
+        `Year is ${yearPercent.toFixed(2)}% complete`;
+      const yearBar = document.getElementById('progress-bar-year');
+      yearBar.setAttribute('data-tooltip', `${yearPercent.toFixed(2)}%`);
+      document.getElementById('progress-badge-year').textContent = `${yearPercent.toFixed(1)}%`;
+      if (animated) {
+        yearBar.style.width = '0';
+        setTimeout(() => { yearBar.style.width = yearPercent + '%'; }, 100);
+      } else {
+        yearBar.style.width = yearPercent + '%';
+      }
+
+      // Month
+      const monthPercent = getMonthProgress();
+      document.getElementById('progress-label-month').textContent =
+        `Month is ${monthPercent.toFixed(2)}% complete`;
+      const monthBar = document.getElementById('progress-bar-month');
+      monthBar.setAttribute('data-tooltip', `${monthPercent.toFixed(2)}%`);
+      document.getElementById('progress-badge-month').textContent = `${monthPercent.toFixed(1)}%`;
+      if (animated) {
+        monthBar.style.width = '0';
+        setTimeout(() => { monthBar.style.width = monthPercent + '%'; }, 100);
+      } else {
+        monthBar.style.width = monthPercent + '%';
+      }
+
+      // Week
+      const weekPercent = getWeekProgress();
+      document.getElementById('progress-label-week').textContent =
+        `Week is ${weekPercent.toFixed(2)}% complete`;
+      const weekBar = document.getElementById('progress-bar-week');
+      weekBar.setAttribute('data-tooltip', `${weekPercent.toFixed(2)}%`);
+      document.getElementById('progress-badge-week').textContent = `${weekPercent.toFixed(1)}%`;
+      if (animated) {
+        weekBar.style.width = '0';
+        setTimeout(() => { weekBar.style.width = weekPercent + '%'; }, 100);
+      } else {
+        weekBar.style.width = weekPercent + '%';
+      }
+    }
     // Calculate month progress
     function getMonthProgress() {
       const now = new Date();
@@ -169,8 +570,168 @@
     function setDailyQuote() {
       const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
       const quote = quotes[dayOfYear % quotes.length];
-      document.getElementById('quote').textContent = quote;
+      const quoteEl = document.getElementById('quote');
+      quoteEl.textContent = quote;
+      quoteEl.classList.remove('copied');
     }
+
+    // Refresh button
+    document.getElementById('refresh-btn').onclick = function() {
+      setDateTime();
+      setProgress(true);
+      setDailyQuote();
+    };
+
+    // Quote copy interaction
+    document.getElementById('quote').onclick = function() {
+      const quoteText = this.textContent;
+      navigator.clipboard.writeText(quoteText).then(() => {
+        this.classList.add('copied');
+        this.textContent = "Copied!";
+        setTimeout(() => {
+          setDailyQuote();
+        }, 900);
+      });
+    };
+
+    // Remove these blocks from your script section:
+
+    /* Remove this entire function
+    function updateRemaining() {
+      const now = new Date();
+      
+      // Year remaining
+      const yearEnd = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
+      const daysInYear = Math.ceil((yearEnd - now) / (1000 * 60 * 60 * 24));
+      document.getElementById('days-year').textContent = daysInYear;
+      
+      // Month remaining
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+      const daysInMonth = Math.ceil((monthEnd - now) / (1000 * 60 * 60 * 24));
+      document.getElementById('days-month').textContent = daysInMonth;
+      
+      // Week remaining (until Sunday)
+      const daysUntilSunday = 7 - now.getDay();
+      const weekEnd = new Date(now);
+      weekEnd.setDate(now.getDate() + daysUntilSunday);
+      weekEnd.setHours(23, 59, 59, 999);
+      const daysInWeek = Math.ceil((weekEnd - now) / (1000 * 60 * 60 * 24));
+      document.getElementById('days-week').textContent = daysInWeek;
+    }
+    */
+
+    /* Remove these lines from the initialization section
+    updateRemaining();
+    setInterval(updateRemaining, 60000);
+    */
+
+    // Add this function before initializeGoals()
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString(undefined, { 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    // Goals management
+    let currentGoalType = 'daily';
+    const goalsData = {
+      daily: JSON.parse(localStorage.getItem('dailyGoals') || '[]'),
+      weekly: JSON.parse(localStorage.getItem('weeklyGoals') || '[]'),
+      yearly: JSON.parse(localStorage.getItem('yearlyGoals') || '[]')
+    };
+
+    // Tab switching
+    document.querySelector('.goals-tabs').addEventListener('click', (e) => {
+      if (e.target.classList.contains('tab-btn')) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        e.target.classList.add('active');
+        currentGoalType = e.target.dataset.tab;
+        document.getElementById('goals-title').textContent = 
+          currentGoalType.charAt(0).toUpperCase() + currentGoalType.slice(1) + ' Goals';
+        renderGoals();
+      }
+    });
+
+    function addGoal(type) {
+      const goal = prompt(`Enter a new ${type} goal:`);
+      if (goal) {
+        const newGoal = {
+          id: Date.now(),
+          text: goal,
+          done: false,
+          created: new Date().toISOString(),
+          completed: null
+        };
+        goalsData[type].push(newGoal);
+        saveAndRenderGoals(type);
+      }
+    }
+
+    function saveAndRenderGoals(type) {
+      localStorage.setItem(`${type}Goals`, JSON.stringify(goalsData[type]));
+      renderGoalsList(type);
+    }
+
+    function renderGoalsList(type) {
+      const list = document.getElementById(`${type}-goals-list`);
+      const goals = goalsData[type];
+      
+      list.innerHTML = goals.map(goal => `
+        <div class="goal-item ${goal.done ? 'completed' : ''}" data-id="${goal.id}">
+          <input type="checkbox" class="goal-checkbox" 
+            ${goal.done ? 'checked' : ''} 
+            onchange="toggleGoal('${type}', ${goal.id})">
+          <span class="goal-text" style="${goal.done ? 'text-decoration: line-through; color: #666;' : ''}">${goal.text}</span>
+          <span class="goal-date">${formatDate(goal.created)}</span>
+          <button class="goal-btn" onclick="deleteGoal('${type}', ${goal.id})">×</button>
+        </div>
+      `).join('');
+    }
+
+    function toggleGoal(type, id) {
+      const goal = goalsData[type].find(g => g.id === id);
+      if (goal) {
+        goal.done = !goal.done;
+        goal.completed = goal.done ? new Date().toISOString() : null;
+        saveAndRenderGoals(type);
+      }
+    }
+
+    function deleteGoal(type, id) {
+      if (confirm('Delete this goal?')) {
+        goalsData[type] = goalsData[type].filter(g => g.id !== id);
+        saveAndRenderGoals(type);
+      }
+    }
+
+    // Initialize all goal lists
+    function initializeGoals() {
+      ['daily', 'weekly', 'yearly'].forEach(type => {
+        renderGoalsList(type);
+      });
+    }
+
+    // Clean up old daily goals at midnight
+    function cleanupOldGoals() {
+      const today = new Date().setHours(0,0,0,0);
+      goalsData.daily = goalsData.daily.filter(goal => {
+        const goalDate = new Date(goal.created).setHours(0,0,0,0);
+        return goalDate >= today;
+      });
+      localStorage.setItem('dailyGoals', JSON.stringify(goalsData.daily));
+    }
+
+    // Initialize goals
+    cleanupOldGoals();
+    initializeGoals();
+
+    // Initial setup
+    setDateTime();
+    setProgress(false);
     setDailyQuote();
   </script>
 </body>
