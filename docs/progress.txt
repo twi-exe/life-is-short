@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 2025 is 66.6% complete. 122 days remaining.
+=======
+2025 is 62.5% complete. 137 days remaining.
+>>>>>>> e0f6bc3 (Quotes on Index)
