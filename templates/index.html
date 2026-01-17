@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Life is Short – Progress Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -23,9 +23,6 @@
       <button class="refresh-btn" id="refresh-btn" title="Refresh progress" aria-label="Refresh">
         <i class="fa-solid fa-rotate-left"></i>
       </button>
-      <a href="/calendar" class="sidebar-link" title="Life Calendar" aria-label="Life Calendar">
-        <i class="fa-solid fa-calendar"></i>
-      </a>
       <div class="user-info" id="user-info">
         <!-- User info will be loaded here -->
       </div>
@@ -323,46 +320,43 @@
     }
 
     // User management
-    let currentUser = null;
+    let currentUser = { is_anonymous: true, display_name: 'Guest' };
 
-    async function loadCurrentUser() {
-      try {
-        const response = await fetch('/api/user/current');
-        if (response.ok) {
-          currentUser = await response.json();
-          updateUserInterface();
-        } else {
-          currentUser = { is_anonymous: true };
-          updateUserInterface();
+    // Goals management
+    let goals = [];
+    let currentGoalType = '';
+
+    function loadGoals() {
+      goals = JSON.parse(localStorage.getItem('goals') || '[]');
+      renderAllGoals();
+    }
+
+    function saveGoals() {
+      localStorage.setItem('goals', JSON.stringify(goals));
+    }
+
+    function renderAllGoals() {
+      const goalsByType = { daily: [], weekly: [], monthly: [], yearly: [] };
+      goals.forEach(goal => {
+        if (goalsByType[goal.goal_type]) {
+          goalsByType[goal.goal_type].push(goal);
         }
-      } catch (error) {
-        console.error('Error loading user:', error);
-        currentUser = { is_anonymous: true };
-        updateUserInterface();
-      }
+      });
+      Object.keys(goalsByType).forEach(type => {
+        renderGoalsList(type, goalsByType[type]);
+      });
+    }
+
+    function loadCurrentUser() {
+      updateUserInterface();
     }
 
     function updateUserInterface() {
       const userInfo = document.getElementById('user-info');
-      
-      if (currentUser && !currentUser.is_anonymous) {
-        const isGuest = currentUser.is_guest;
-        userInfo.innerHTML = `
-          <div class="username">${currentUser.display_name || currentUser.username}</div>
-          ${isGuest ? '<div class="guest-badge">GUEST</div>' : ''}
-          <div class="user-controls">
-            ${isGuest ? '<button class="user-btn" onclick="showConvertGuestDialog()">Sign Up</button>' : ''}
-            <button class="user-btn" onclick="logout()">Sign Out</button>
-          </div>
-        `;
-      } else {
-        userInfo.innerHTML = `
-          <div class="user-controls">
-            <button class="user-btn" onclick="window.location.href='/login'">Sign In</button>
-            <button class="user-btn" onclick="window.location.href='/register'">Sign Up</button>
-          </div>
-        `;
-      }
+      userInfo.innerHTML = `
+        <div class="username">${currentUser.display_name}</div>
+        <div class="guest-badge">GUEST</div>
+      `;
     }
 
     async function logout() {
@@ -408,32 +402,7 @@
       }
     }
 
-    // Goals management - API version
-    let currentGoalType = 'daily';
 
-    // Load goals from API
-    async function loadGoals(type = null) {
-      try {
-        const url = type ? `/api/goals?type=${type}` : '/api/goals';
-        const response = await fetch(url);
-        const goals = await response.json();
-
-        // Group goals by type
-        const goalsByType = {
-          daily: goals.filter(g => g.goal_type === 'daily'),
-          weekly: goals.filter(g => g.goal_type === 'weekly'),
-          monthly: goals.filter(g => g.goal_type === 'monthly'),
-          yearly: goals.filter(g => g.goal_type === 'yearly')
-        };
-
-        // Render all types
-        Object.keys(goalsByType).forEach(goalType => {
-          renderGoalsList(goalType, goalsByType[goalType]);
-        });
-      } catch (error) {
-        console.error('Error loading goals:', error);
-      }
-    }
 
     function addGoal(type) {
       currentGoalType = type;
@@ -442,25 +411,17 @@
       document.getElementById('add-goal-dialog').showModal();
     }
 
-    async function createGoal(text, type) {
-      try {
-        const response = await fetch('/api/goals', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            text: text,
-            goal_type: type
-          })
-        });
-
-        if (response.ok) {
-          loadGoals(); // Reload all goals
-        }
-      } catch (error) {
-        console.error('Error creating goal:', error);
-      }
+    function createGoal(text, type) {
+      const newGoal = {
+        id: Date.now(),
+        text: text,
+        goal_type: type,
+        done: false,
+        created: new Date().toISOString()
+      };
+      goals.push(newGoal);
+      saveGoals();
+      loadGoals();
     }
 
     function renderGoalsList(type, goals) {
@@ -478,46 +439,20 @@
       `).join('');
     }
 
-    async function toggleGoal(id) {
-      try {
-        // First get the current goal to know its current state
-        const response = await fetch('/api/goals');
-        const goals = await response.json();
-        const goal = goals.find(g => g.id === id);
-
-        if (goal) {
-          const updateResponse = await fetch(`/api/goals/${id}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              done: !goal.done
-            })
-          });
-
-          if (updateResponse.ok) {
-            loadGoals(); // Reload all goals
-          }
-        }
-      } catch (error) {
-        console.error('Error toggling goal:', error);
+    function toggleGoal(id) {
+      const goal = goals.find(g => g.id === id);
+      if (goal) {
+        goal.done = !goal.done;
+        saveGoals();
+        loadGoals();
       }
     }
 
-    async function deleteGoal(id) {
+    function deleteGoal(id) {
       if (confirm('Delete this goal?')) {
-        try {
-          const response = await fetch(`/api/goals/${id}`, {
-            method: 'DELETE'
-          });
-
-          if (response.ok) {
-            loadGoals(); // Reload all goals
-          }
-        } catch (error) {
-          console.error('Error deleting goal:', error);
-        }
+        goals = goals.filter(g => g.id !== id);
+        saveGoals();
+        loadGoals();
       }
     }
 
