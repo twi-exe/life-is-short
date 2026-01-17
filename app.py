@@ -83,7 +83,7 @@ class User(UserMixin, db.Model):
 class Goal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.String(500), nullable=False)
-    goal_type = db.Column(db.String(20), nullable=False)  # daily, weekly, yearly
+    goal_type = db.Column(db.String(20), nullable=False)  # daily, weekly, monthly, yearly
     done = db.Column(db.Boolean, default=False)
     created = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     completed = db.Column(db.DateTime, nullable=True)

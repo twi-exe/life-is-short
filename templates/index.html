@@ -75,6 +75,14 @@
 
       <div class="goals-section">
         <div class="goals-header">
+          <h3>Monthly Goals</h3>
+          <button class="small-btn" onclick="addGoal('monthly')">+</button>
+        </div>
+        <div id="monthly-goals-list" class="goals-list"></div>
+      </div>
+
+      <div class="goals-section yearly-goals">
+        <div class="goals-header">
           <h3>Yearly Goals</h3>
           <button class="small-btn" onclick="addGoal('yearly')">+</button>
         </div>
@@ -90,6 +98,19 @@
   <footer>
     &copy; 2025 twi-exe &mdash; Make every day count.
   </footer>
+
+  <!-- Custom dialog for adding goals -->
+  <dialog id="add-goal-dialog" class="goal-dialog">
+    <form method="dialog" id="add-goal-form">
+      <h3 id="dialog-title">Add New Goal</h3>
+      <label for="goal-text">Goal Description:</label>
+      <input type="text" id="goal-text" required placeholder="Enter your goal...">
+      <div class="dialog-buttons">
+        <button type="submit" class="dialog-btn primary">Add Goal</button>
+        <button type="button" class="dialog-btn secondary" onclick="closeGoalDialog()">Cancel</button>
+      </div>
+    </form>
+  </dialog>
 
   <script>
     // Show current date/time
@@ -398,6 +419,7 @@
         const goalsByType = {
           daily: goals.filter(g => g.goal_type === 'daily'),
           weekly: goals.filter(g => g.goal_type === 'weekly'),
+          monthly: goals.filter(g => g.goal_type === 'monthly'),
           yearly: goals.filter(g => g.goal_type === 'yearly')
         };
 
@@ -411,10 +433,10 @@
     }
 
     function addGoal(type) {
-      const goal = prompt(`Enter a new ${type} goal:`);
-      if (goal) {
-        createGoal(goal, type);
-      }
+      currentGoalType = type;
+      document.getElementById('dialog-title').textContent = `Add New ${type.charAt(0).toUpperCase() + type.slice(1)} Goal`;
+      document.getElementById('goal-text').value = '';
+      document.getElementById('add-goal-dialog').showModal();
     }
 
     async function createGoal(text, type) {
@@ -525,6 +547,20 @@
         localStorage.setItem('sidebarExpanded', expanded);
       });
     }
+
+    // Goal dialog functionality
+    function closeGoalDialog() {
+      document.getElementById('add-goal-dialog').close();
+    }
+
+    document.getElementById('add-goal-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const goalText = document.getElementById('goal-text').value.trim();
+      if (goalText) {
+        createGoal(goalText, currentGoalType);
+        closeGoalDialog();
+      }
+    });
 
     // Initial setup
     initSidebarToggle();
