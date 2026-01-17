@@ -11,8 +11,9 @@ os.makedirs("docs", exist_ok=True)
 current_date = datetime.now()
 
 # Define year start and end
-year_start = date(2025, 1, 1)
-year_end = date(2025, 12, 31)
+current_year = current_date.year
+year_start = date(current_year, 1, 1)
+year_end = date(current_year, 12, 31)
 
 # Calculate total days in the year and days elapsed
 total_days = (year_end - year_start).days + 1
@@ -55,7 +56,7 @@ ax.set_xlim(0, total_days)
 ax.set_ylim(-0.5, 0.5)
 ax.set_yticks([])
 ax.set_title(
-    f"2025: {percentage_complete:.2f}% | {days_elapsed}d elapsed | {total_days-days_elapsed}d left",
+    f"{current_year}: {percentage_complete:.2f}% | {days_elapsed}d elapsed | {total_days-days_elapsed}d left",
     color='#2a3a5e', fontweight='bold'
 )
 
@@ -78,4 +79,4 @@ fig.savefig("docs/progress.png", dpi=300, transparent=True)
 
 # Save text version as well
 with open("docs/progress.txt", "w") as f:
-    f.write(f"2025 is {percentage_complete:.1f}% complete. {total_days - days_elapsed} days remaining.\n")
+    f.write(f"{current_year} is {percentage_complete:.1f}% complete. {total_days - days_elapsed} days remaining.\n")
