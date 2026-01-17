@@ -133,6 +133,10 @@ def ensure_user():
 def index():
     return render_template('index.html')
 
+@app.route('/calendar')
+def calendar():
+    return render_template('calendar.html')
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':

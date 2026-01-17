@@ -188,6 +188,38 @@ p {
   height: 1.2rem;
 }
 
+.sidebar-link {
+  background: var(--surface-color);
+  border: 2px solid var(--border-color);
+  border-radius: 50%;
+  cursor: pointer;
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2rem;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  color: var(--text-secondary);
+}
+
+.sidebar-link:hover {
+  background: var(--secondary-color);
+  border-color: var(--secondary-color);
+  transform: scale(1.05);
+  color: white;
+}
+
+.sidebar-link:active {
+  transform: scale(0.95);
+}
+
+.sidebar-link i {
+  font-size: 1.2rem;
+}
+
 .sidebar-toggle {
   background: none;
   border: none;
@@ -863,4 +895,161 @@ textarea:focus {
 .yearly-goals {
   grid-column: 1 / -1;
   margin-top: 1rem;
+}
+
+/* Life Calendar Styles */
+.calendar-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.calendar-container h1 {
+  text-align: center;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+  font-size: 2.5rem;
+}
+
+.calendar-description {
+  text-align: center;
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.calendar-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: var(--surface-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.calendar-controls label {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.calendar-controls input {
+  padding: 0.5rem;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  margin-left: 0.5rem;
+}
+
+.calendar-controls input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.calendar-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 2rem;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.calendar-year {
+  display: flex;
+  gap: 2px;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.calendar-week {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--border-color);
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.calendar-week.lived {
+  background: var(--primary-color);
+}
+
+.calendar-week.current {
+  background: var(--accent-color);
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+  animation: pulse 2s infinite;
+}
+
+.calendar-week.remaining {
+  background: var(--surface-hover);
+}
+
+.calendar-week:hover {
+  transform: scale(1.2);
+  box-shadow: var(--shadow-sm);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.calendar-stats {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 1.5rem;
+  background: var(--surface-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  min-width: 120px;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .calendar-year {
+    gap: 1px;
+  }
+
+  .calendar-week {
+    width: 8px;
+    height: 8px;
+  }
+
+  .calendar-stats {
+    gap: 1rem;
+  }
+
+  .stat-item {
+    min-width: 100px;
+    padding: 1rem;
+  }
+
+  .stat-number {
+    font-size: 1.5rem;
+  }
 }

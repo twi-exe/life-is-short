@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Life Calendar – Life is Short</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle sidebar" aria-label="Toggle sidebar">
+        <div class="sidebar-title-vertical">Life is Short</div>
+      </button>
+    </div>
+
+    <div class="sidebar-content">
+      <button class="refresh-btn" id="refresh-btn" title="Refresh progress" aria-label="Refresh">
+        <i class="fa-solid fa-rotate-left"></i>
+      </button>
+      <a href="/" class="sidebar-link" title="Home" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+      <div class="user-info" id="user-info">
+        <!-- User info will be loaded here -->
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <div class="datetime" id="datetime"></div>
+
+    <div class="calendar-container">
+      <h1>Life Calendar</h1>
+      <p class="calendar-description">
+        Each square represents one week of your life. The darker squares show weeks that have passed.
+        <br>
+        <strong id="weeks-lived">0</strong> weeks lived out of <strong id="total-weeks">0</strong> weeks in a typical lifespan.
+      </p>
+
+      <div class="calendar-controls">
+        <label for="birthdate">Birth Date:</label>
+        <input type="date" id="birthdate" value="1990-01-01">
+        <label for="lifespan">Expected Lifespan (years):</label>
+        <input type="number" id="lifespan" value="80" min="1" max="120">
+        <button id="update-calendar" class="small-btn">Update</button>
+      </div>
+
+      <div class="calendar-grid" id="calendar-grid">
+        <!-- Calendar weeks will be generated here -->
+      </div>
+
+      <div class="calendar-stats">
+        <div class="stat-item">
+          <div class="stat-number" id="years-lived">0</div>
+          <div class="stat-label">Years Lived</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="years-remaining">0</div>
+          <div class="stat-label">Years Remaining</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="percentage-lived">0%</div>
+          <div class="stat-label">Life Completed</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    &copy; 2025 twi-exe &mdash; Make every day count.
+  </footer>
+
+  <script>
+    // Show current date/time
+    function setDateTime() {
+      const now = new Date();
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+                        hour: '2-digit', minute: '2-digit', second: '2-digit' };
+      document.getElementById('datetime').textContent = now.toLocaleString(undefined, options);
+    }
+
+    // Generate life calendar
+    function generateCalendar(birthDate, lifespanYears) {
+      const grid = document.getElementById('calendar-grid');
+      const now = new Date();
+      const birth = new Date(birthDate);
+
+      // Clear existing grid
+      grid.innerHTML = '';
+
+      let totalWeeksLived = 0;
+
+      // Create rows for each year of life
+      for (let year = 0; year < lifespanYears; year++) {
+        const yearStart = new Date(birth);
+        yearStart.setFullYear(birth.getFullYear() + year);
+
+        const yearEnd = new Date(birth);
+        yearEnd.setFullYear(birth.getFullYear() + year + 1);
+
+        // Calculate weeks in this year
+        const weeksInYear = Math.round((yearEnd - yearStart) / (1000 * 60 * 60 * 24 * 7));
+
+        // Create year container
+        const yearContainer = document.createElement('div');
+        yearContainer.className = 'calendar-year';
+
+        // Create week elements for this year
+        for (let week = 0; week < weeksInYear; week++) {
+          const weekStart = new Date(yearStart);
+          weekStart.setDate(yearStart.getDate() + (week * 7));
+
+          const weekEnd = new Date(weekStart);
+          weekEnd.setDate(weekStart.getDate() + 7);
+
+          const weekElement = document.createElement('div');
+          weekElement.className = 'calendar-week';
+
+          // Check if this week has been lived
+          if (weekEnd <= now) {
+            weekElement.classList.add('lived');
+            totalWeeksLived++;
+          } else if (weekStart <= now && now < weekEnd) {
+            weekElement.classList.add('current');
+            totalWeeksLived++;
+          } else {
+            weekElement.classList.add('remaining');
+          }
+
+          yearContainer.appendChild(weekElement);
+        }
+
+        grid.appendChild(yearContainer);
+      }
+
+      // Calculate total possible weeks
+      const lifespanEnd = new Date(birth);
+      lifespanEnd.setFullYear(birth.getFullYear() + lifespanYears);
+      const totalWeeks = Math.round((lifespanEnd - birth) / (1000 * 60 * 60 * 24 * 7));
+
+      // Update stats
+      const yearsLived = Math.floor(totalWeeksLived / 52.14); // Approximate
+      const yearsRemaining = lifespanYears - yearsLived;
+      const percentageLived = ((totalWeeksLived / totalWeeks) * 100).toFixed(1);
+
+      document.getElementById('weeks-lived').textContent = totalWeeksLived.toLocaleString();
+      document.getElementById('total-weeks').textContent = totalWeeks.toLocaleString();
+      document.getElementById('years-lived').textContent = yearsLived;
+      document.getElementById('years-remaining').textContent = yearsRemaining;
+      document.getElementById('percentage-lived').textContent = percentageLived + '%';
+    }
+
+    // Event listeners
+    document.getElementById('update-calendar').addEventListener('click', function() {
+      const birthdate = document.getElementById('birthdate').value;
+      const lifespan = parseInt(document.getElementById('lifespan').value);
+      generateCalendar(birthdate, lifespan);
+    });
+
+    // Sidebar toggle functionality
+    function initSidebarToggle() {
+      const sidebar = document.querySelector('.sidebar');
+      const toggleBtn = document.getElementById('sidebar-toggle');
+      const main = document.querySelector('main');
+
+      // Load saved state from localStorage
+      const isExpanded = localStorage.getItem('sidebarExpanded') === 'true';
+      if (isExpanded) {
+        sidebar.classList.add('expanded');
+        main.classList.add('expanded');
+      }
+
+      toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('expanded');
+        main.classList.toggle('expanded');
+        const expanded = sidebar.classList.contains('expanded');
+        localStorage.setItem('sidebarExpanded', expanded);
+      });
+    }
+
+    // User management (similar to index.html)
+    let currentUser = null;
+
+    async function loadCurrentUser() {
+      try {
+        const response = await fetch('/api/user/current');
+        if (response.ok) {
+          currentUser = await response.json();
+          updateUserInterface();
+        } else {
+          currentUser = { is_anonymous: true };
+          updateUserInterface();
+        }
+      } catch (error) {
+        console.error('Error loading user:', error);
+        currentUser = { is_anonymous: true };
+        updateUserInterface();
+      }
+    }
+
+    function updateUserInterface() {
+      const userInfo = document.getElementById('user-info');
+
+      if (currentUser && !currentUser.is_anonymous) {
+        const isGuest = currentUser.is_guest;
+        userInfo.innerHTML = `
+          <div class="username">${currentUser.display_name || currentUser.username}</div>
+          ${isGuest ? '<div class="guest-badge">GUEST</div>' : ''}
+          <div class="user-controls">
+            ${isGuest ? '<button class="user-btn" onclick="showConvertGuestDialog()">Sign Up</button>' : ''}
+            <button class="user-btn" onclick="logout()">Sign Out</button>
+          </div>
+        `;
+      } else {
+        userInfo.innerHTML = `
+          <div class="user-controls">
+            <button class="user-btn" onclick="window.location.href='/login'">Sign In</button>
+            <button class="user-btn" onclick="window.location.href='/register'">Sign Up</button>
+          </div>
+        `;
+      }
+    }
+
+    async function logout() {
+      try {
+        await fetch('/logout', { method: 'POST' });
+        currentUser = { is_anonymous: true };
+        updateUserInterface();
+      } catch (error) {
+        console.error('Error logging out:', error);
+      }
+    }
+
+    // Initial setup
+    initSidebarToggle();
+    loadCurrentUser();
+    setDateTime();
+
+    // Generate initial calendar
+    const defaultBirth = '1990-01-01';
+    const defaultLifespan = 80;
+    generateCalendar(defaultBirth, defaultLifespan);
+  </script>
+</body>
+</html>
