@@ -23,6 +23,9 @@
       <button class="refresh-btn" id="refresh-btn" title="Refresh progress" aria-label="Refresh">
         <i class="fa-solid fa-rotate-left"></i>
       </button>
+      <button class="sidebar-link" onclick="toggleCalendar()" title="Life Calendar" aria-label="Life Calendar">
+        <i class="fa-solid fa-calendar"></i>
+      </button>
       <div class="user-info" id="user-info">
         <!-- User info will be loaded here -->
       </div>
@@ -87,6 +90,42 @@
           <button class="small-btn" onclick="addGoal('yearly')">+</button>
         </div>
         <div id="yearly-goals-list" class="goals-list"></div>
+      </div>
+    </div>
+
+    <div class="calendar-container" id="calendar-container" style="display: none;">
+      <h1>Life Calendar</h1>
+      <p class="calendar-description">
+        Each square represents one week of your life. The darker squares show weeks that have passed.
+        <br>
+        <strong id="weeks-lived">0</strong> weeks lived out of <strong id="total-weeks">0</strong> weeks in a typical lifespan.
+      </p>
+
+      <div class="calendar-controls">
+        <label for="birthdate">Birth Date:</label>
+        <input type="date" id="birthdate" value="1990-01-01">
+        <label for="lifespan">Expected Lifespan (years):</label>
+        <input type="number" id="lifespan" value="80" min="1" max="120">
+        <button id="update-calendar" class="small-btn">Update</button>
+      </div>
+
+      <div class="calendar-grid" id="calendar-grid">
+        <!-- Calendar weeks will be generated here -->
+      </div>
+
+      <div class="calendar-stats">
+        <div class="stat-item">
+          <div class="stat-number" id="years-lived">0</div>
+          <div class="stat-label">Years Lived</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="years-remaining">0</div>
+          <div class="stat-label">Years Remaining</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="percentage-lived">0%</div>
+          <div class="stat-label">Life Completed</div>
+        </div>
       </div>
     </div>
 
@@ -498,6 +537,96 @@
         createGoal(goalText, currentGoalType);
         closeGoalDialog();
       }
+    });
+
+    // Calendar functionality
+    function toggleCalendar() {
+      const calendar = document.getElementById('calendar-container');
+      const isVisible = calendar.style.display !== 'none';
+      calendar.style.display = isVisible ? 'none' : 'block';
+      if (!isVisible) {
+        // Initialize calendar if showing
+        const birthdate = document.getElementById('birthdate').value;
+        const lifespan = parseInt(document.getElementById('lifespan').value);
+        generateCalendar(birthdate, lifespan);
+      }
+    }
+
+    function generateCalendar(birthDate, lifespanYears) {
+      const grid = document.getElementById('calendar-grid');
+      const now = new Date();
+      const birth = new Date(birthDate);
+
+      // Clear existing grid
+      grid.innerHTML = '';
+
+      let totalWeeksLived = 0;
+
+      // Create rows for each year of life
+      for (let year = 0; year < lifespanYears; year++) {
+        const yearStart = new Date(birth);
+        yearStart.setFullYear(birth.getFullYear() + year);
+
+        const yearEnd = new Date(birth);
+        yearEnd.setFullYear(birth.getFullYear() + year + 1);
+
+        // Calculate weeks in this year
+        const weeksInYear = Math.round((yearEnd - yearStart) / (1000 * 60 * 60 * 24 * 7));
+
+        // Create year container
+        const yearContainer = document.createElement('div');
+        yearContainer.className = 'calendar-year';
+
+        // Create week elements for this year
+        for (let week = 0; week < weeksInYear; week++) {
+          const weekStart = new Date(yearStart);
+          weekStart.setDate(yearStart.getDate() + (week * 7));
+
+          const weekEnd = new Date(weekStart);
+          weekEnd.setDate(weekStart.getDate() + 7);
+
+          const weekElement = document.createElement('div');
+          weekElement.className = 'calendar-week';
+
+          // Check if this week has been lived
+          if (weekEnd <= now) {
+            weekElement.classList.add('lived');
+            totalWeeksLived++;
+          } else if (weekStart <= now && now < weekEnd) {
+            weekElement.classList.add('current');
+            totalWeeksLived++;
+          } else {
+            weekElement.classList.add('remaining');
+          }
+
+          yearContainer.appendChild(weekElement);
+        }
+
+        grid.appendChild(yearContainer);
+      }
+
+      // Calculate total possible weeks
+      const lifespanEnd = new Date(birth);
+      lifespanEnd.setFullYear(birth.getFullYear() + lifespanYears);
+      const totalWeeks = Math.round((lifespanEnd - birth) / (1000 * 60 * 60 * 24 * 7));
+
+      // Update stats
+      const yearsLived = Math.floor(totalWeeksLived / 52.14); // Approximate
+      const yearsRemaining = lifespanYears - yearsLived;
+      const percentageLived = ((totalWeeksLived / totalWeeks) * 100).toFixed(1);
+
+      document.getElementById('weeks-lived').textContent = totalWeeksLived.toLocaleString();
+      document.getElementById('total-weeks').textContent = totalWeeks.toLocaleString();
+      document.getElementById('years-lived').textContent = yearsLived;
+      document.getElementById('years-remaining').textContent = yearsRemaining;
+      document.getElementById('percentage-lived').textContent = percentageLived + '%';
+    }
+
+    // Event listener for calendar update
+    document.getElementById('update-calendar').addEventListener('click', function() {
+      const birthdate = document.getElementById('birthdate').value;
+      const lifespan = parseInt(document.getElementById('lifespan').value);
+      generateCalendar(birthdate, lifespan);
     });
 
     // Initial setup
