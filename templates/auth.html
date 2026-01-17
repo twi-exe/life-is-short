@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ 'Register' if mode == 'register' else 'Login' }} - Life is Short</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1>{{ 'Create Account' if mode == 'register' else 'Welcome Back' }}</h1>
+            <p>{{ 'Join Life is Short to track your progress' if mode == 'register' else 'Sign in to your account' }}</p>
+        </div>
+        
+        <form id="auth-form">
+            <div id="error-container"></div>
+            
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required minlength="3" autocomplete="username">
+            </div>
+            
+            {% if mode == 'register' %}
+            <div class="form-group">
+                <label for="email">Email (optional)</label>
+                <input type="email" id="email" name="email" autocomplete="email">
+            </div>
+            {% endif %}
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required minlength="6" autocomplete="{{ 'new-password' if mode == 'register' else 'current-password' }}">
+            </div>
+            
+            <button type="submit" class="btn" id="submit-btn">
+                {{ 'Create Account' if mode == 'register' else 'Sign In' }}
+            </button>
+        </form>
+        
+        <div class="auth-links">
+            {% if mode == 'register' %}
+                <p>Already have an account? <a href="/login">Sign in</a></p>
+            {% else %}
+                <p>Don't have an account? <a href="/register">Create one</a></p>
+            {% endif %}
+        </div>
+        
+        <div class="guest-link">
+            <a href="/">Continue as guest</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('auth-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submit-btn');
+            const errorContainer = document.getElementById('error-container');
+            
+            // Clear previous errors
+            errorContainer.innerHTML = '';
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Please wait...';
+            
+            try {
+                const formData = new FormData(this);
+                const data = Object.fromEntries(formData.entries());
+                
+                const response = await fetch(window.location.pathname, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // Success - redirect to main app
+                    window.location.href = '/';
+                } else {
+                    // Show error
+                    errorContainer.innerHTML = `<div class="error-message">${result.error || 'An error occurred'}</div>`;
+                }
+            } catch (error) {
+                errorContainer.innerHTML = `<div class="error-message">Network error. Please try again.</div>`;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '{{ "Create Account" if mode == "register" else "Sign In" }}';
+            }
+        });
+    </script>
+</body>
+</html>

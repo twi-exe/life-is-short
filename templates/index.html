@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Life is Short – Progress Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle sidebar" aria-label="Toggle sidebar">
+        <div class="sidebar-title-vertical">Life is Short</div>
+      </button>
+    </div>
+
+    <div class="sidebar-content">
+      <button class="refresh-btn" id="refresh-btn" title="Refresh progress" aria-label="Refresh">
+        <i class="fa-solid fa-rotate-left"></i>
+      </button>
+      <div class="user-info" id="user-info">
+        <!-- User info will be loaded here -->
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <div class="datetime" id="datetime"></div>
+
+    <div class="progress-group">
+      <div class="progress-label" id="progress-label-year">Loading...</div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-bar-year"></div>
+        <span class="progress-badge" id="progress-badge-year"></span>
+      </div>
+    </div>
+
+    <div class="progress-group">
+      <div class="progress-label" id="progress-label-month">Loading...</div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-bar-month"></div>
+        <span class="progress-badge" id="progress-badge-month"></span>
+      </div>
+    </div>
+
+    <div class="progress-group">
+      <div class="progress-label" id="progress-label-week">Loading...</div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-bar-week"></div>
+        <span class="progress-badge" id="progress-badge-week"></span>
+      </div>
+    </div>
+
+    <div class="goals-container">
+      <div class="goals-section">
+        <div class="goals-header">
+          <h3>Daily Goals</h3>
+          <button class="small-btn" onclick="addGoal('daily')">+</button>
+        </div>
+        <div id="daily-goals-list" class="goals-list"></div>
+      </div>
+
+      <div class="goals-section">
+        <div class="goals-header">
+          <h3>Weekly Goals</h3>
+          <button class="small-btn" onclick="addGoal('weekly')">+</button>
+        </div>
+        <div id="weekly-goals-list" class="goals-list"></div>
+      </div>
+
+      <div class="goals-section">
+        <div class="goals-header">
+          <h3>Yearly Goals</h3>
+          <button class="small-btn" onclick="addGoal('yearly')">+</button>
+        </div>
+        <div id="yearly-goals-list" class="goals-list"></div>
+      </div>
+    </div>
+
+    <div class="quote" id="quote" title="Click to copy quote">
+      "The trouble is, you think you have time." – Jack Kornfield
+    </div>
+  </main>
+
+  <footer>
+    &copy; 2025 twi-exe &mdash; Make every day count.
+  </footer>
+
+  <script>
+    // Show current date/time
+    function setDateTime() {
+      const now = new Date();
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+                        hour: '2-digit', minute: '2-digit', second: '2-digit' };
+      document.getElementById('datetime').textContent = now.toLocaleString(undefined, options);
+    }
+
+    // Calculate year progress
+    function getYearProgress() {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), 0, 1);
+      const end = new Date(now.getFullYear() + 1, 0, 1);
+      const percent = ((now - start) / (end - start)) * 100;
+      return percent;
+    }
+
+    // Calculate month progress
+    function getMonthProgress() {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      const percent = ((now - start) / (end - start)) * 100;
+      return percent;
+    }
+
+    // Calculate week progress (Monday is start of week)
+    function getWeekProgress() {
+      const now = new Date();
+      const day = now.getDay(); // 0 = Sunday
+      const daysSinceMonday = (day + 6) % 7;
+      const monday = new Date(now);
+      monday.setDate(now.getDate() - daysSinceMonday);
+      monday.setHours(0,0,0,0);
+      const nextMonday = new Date(monday);
+      nextMonday.setDate(monday.getDate() + 7);
+      const percent = ((now - monday) / (nextMonday - monday)) * 100;
+      return percent;
+    }
+
+    function setProgress(animated = true) {
+      // Year
+      const yearPercent = getYearProgress();
+      document.getElementById('progress-label-year').textContent =
+        `Year is ${yearPercent.toFixed(2)}% complete`;
+      const yearBar = document.getElementById('progress-bar-year');
+      yearBar.setAttribute('data-tooltip', `${yearPercent.toFixed(2)}%`);
+      document.getElementById('progress-badge-year').textContent = `${yearPercent.toFixed(1)}%`;
+      if (animated) {
+        yearBar.style.width = '0';
+        setTimeout(() => { yearBar.style.width = yearPercent + '%'; }, 100);
+      } else {
+        yearBar.style.width = yearPercent + '%';
+      }
+
+      // Month
+      const monthPercent = getMonthProgress();
+      document.getElementById('progress-label-month').textContent =
+        `Month is ${monthPercent.toFixed(2)}% complete`;
+      const monthBar = document.getElementById('progress-bar-month');
+      monthBar.setAttribute('data-tooltip', `${monthPercent.toFixed(2)}%`);
+      document.getElementById('progress-badge-month').textContent = `${monthPercent.toFixed(1)}%`;
+      if (animated) {
+        monthBar.style.width = '0';
+        setTimeout(() => { monthBar.style.width = monthPercent + '%'; }, 100);
+      } else {
+        monthBar.style.width = monthPercent + '%';
+      }
+
+      // Week
+      const weekPercent = getWeekProgress();
+      document.getElementById('progress-label-week').textContent =
+        `Week is ${weekPercent.toFixed(2)}% complete`;
+      const weekBar = document.getElementById('progress-bar-week');
+      weekBar.setAttribute('data-tooltip', `${weekPercent.toFixed(2)}%`);
+      document.getElementById('progress-badge-week').textContent = `${weekPercent.toFixed(1)}%`;
+      if (animated) {
+        weekBar.style.width = '0';
+        setTimeout(() => { weekBar.style.width = weekPercent + '%'; }, 100);
+      } else {
+        weekBar.style.width = weekPercent + '%';
+      }
+    }
+    // Calculate month progress
+    function getMonthProgress() {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      const percent = ((now - start) / (end - start)) * 100;
+      return percent;
+    }
+
+    // Calculate week progress (Monday is start of week)
+    function getWeekProgress() {
+      const now = new Date();
+      const day = now.getDay(); // 0 = Sunday
+      // Calculate days since Monday
+      const daysSinceMonday = (day + 6) % 7;
+      const monday = new Date(now);
+      monday.setDate(now.getDate() - daysSinceMonday);
+      monday.setHours(0,0,0,0);
+      const nextMonday = new Date(monday);
+      nextMonday.setDate(monday.getDate() + 7);
+      const percent = ((now - monday) / (nextMonday - monday)) * 100;
+      return percent;
+    }
+
+    function setProgress() {
+      // Year
+      const yearPercent = getYearProgress();
+      document.getElementById('progress-label-year').textContent =
+        `Year is ${yearPercent.toFixed(2)}% complete`;
+      document.getElementById('progress-bar-year').style.width = yearPercent + '%';
+
+      // Month
+      const monthPercent = getMonthProgress();
+      document.getElementById('progress-label-month').textContent =
+        `Month is ${monthPercent.toFixed(2)}% complete`;
+      document.getElementById('progress-bar-month').style.width = monthPercent + '%';
+
+      // Week
+      const weekPercent = getWeekProgress();
+      document.getElementById('progress-label-week').textContent =
+        `Week is ${weekPercent.toFixed(2)}% complete`;
+      document.getElementById('progress-bar-week').style.width = weekPercent + '%';
+    }
+
+    setProgress();
+
+    // Motivational quotes (rotate daily)
+    const quotes = [
+      "The trouble is, you think you have time. – Jack Kornfield",
+      "Don't count the days, make the days count. – Muhammad Ali",
+      "Lost time is never found again. – Benjamin Franklin",
+      "Do not squander time, for that's the stuff life is made of. – Benjamin Franklin",
+      "You only live once, but if you do it right, once is enough. – Mae West"
+    ];
+    function setDailyQuote() {
+      const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+      const quote = quotes[dayOfYear % quotes.length];
+      const quoteEl = document.getElementById('quote');
+      quoteEl.textContent = quote;
+      quoteEl.classList.remove('copied');
+    }
+
+    // Refresh button
+    document.getElementById('refresh-btn').onclick = function() {
+      setDateTime();
+      setProgress(true);
+      setDailyQuote();
+    };
+
+    // Quote copy interaction
+    document.getElementById('quote').onclick = function() {
+      const quoteText = this.textContent;
+      navigator.clipboard.writeText(quoteText).then(() => {
+        this.classList.add('copied');
+        this.textContent = "Copied!";
+        setTimeout(() => {
+          setDailyQuote();
+        }, 900);
+      });
+    };
+
+    // Remove these blocks from your script section:
+
+    /* Remove this entire function
+    function updateRemaining() {
+      const now = new Date();
+      
+      // Year remaining
+      const yearEnd = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
+      const daysInYear = Math.ceil((yearEnd - now) / (1000 * 60 * 60 * 24));
+      document.getElementById('days-year').textContent = daysInYear;
+      
+      // Month remaining
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+      const daysInMonth = Math.ceil((monthEnd - now) / (1000 * 60 * 60 * 24));
+      document.getElementById('days-month').textContent = daysInMonth;
+      
+      // Week remaining (until Sunday)
+      const daysUntilSunday = 7 - now.getDay();
+      const weekEnd = new Date(now);
+      weekEnd.setDate(now.getDate() + daysUntilSunday);
+      weekEnd.setHours(23, 59, 59, 999);
+      const daysInWeek = Math.ceil((weekEnd - now) / (1000 * 60 * 60 * 24));
+      document.getElementById('days-week').textContent = daysInWeek;
+    }
+    */
+
+    /* Remove these lines from the initialization section
+    updateRemaining();
+    setInterval(updateRemaining, 60000);
+    */
+
+    // Add this function before initializeGoals()
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString(undefined, { 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    // User management
+    let currentUser = null;
+
+    async function loadCurrentUser() {
+      try {
+        const response = await fetch('/api/user/current');
+        if (response.ok) {
+          currentUser = await response.json();
+          updateUserInterface();
+        } else {
+          currentUser = { is_anonymous: true };
+          updateUserInterface();
+        }
+      } catch (error) {
+        console.error('Error loading user:', error);
+        currentUser = { is_anonymous: true };
+        updateUserInterface();
+      }
+    }
+
+    function updateUserInterface() {
+      const userInfo = document.getElementById('user-info');
+      
+      if (currentUser && !currentUser.is_anonymous) {
+        const isGuest = currentUser.is_guest;
+        userInfo.innerHTML = `
+          <div class="username">${currentUser.display_name || currentUser.username}</div>
+          ${isGuest ? '<div class="guest-badge">GUEST</div>' : ''}
+          <div class="user-controls">
+            ${isGuest ? '<button class="user-btn" onclick="showConvertGuestDialog()">Sign Up</button>' : ''}
+            <button class="user-btn" onclick="logout()">Sign Out</button>
+          </div>
+        `;
+      } else {
+        userInfo.innerHTML = `
+          <div class="user-controls">
+            <button class="user-btn" onclick="window.location.href='/login'">Sign In</button>
+            <button class="user-btn" onclick="window.location.href='/register'">Sign Up</button>
+          </div>
+        `;
+      }
+    }
+
+    async function logout() {
+      try {
+        await fetch('/logout', { method: 'POST' });
+        currentUser = { is_anonymous: true };
+        updateUserInterface();
+        loadGoals(); // Reload goals for guest session
+      } catch (error) {
+        console.error('Error logging out:', error);
+      }
+    }
+
+    function showConvertGuestDialog() {
+      const username = prompt('Choose a username (min 3 characters):');
+      if (!username || username.length < 3) return;
+      
+      const password = prompt('Choose a password (min 6 characters):');
+      if (!password || password.length < 6) return;
+      
+      convertGuest(username, password);
+    }
+
+    async function convertGuest(username, password) {
+      try {
+        const response = await fetch('/api/user/convert-guest', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        
+        if (response.ok) {
+          currentUser = await response.json();
+          updateUserInterface();
+          alert('Account created successfully!');
+        } else {
+          const error = await response.json();
+          alert(error.error || 'Error creating account');
+        }
+      } catch (error) {
+        console.error('Error converting guest:', error);
+        alert('Network error. Please try again.');
+      }
+    }
+
+    // Goals management - API version
+    let currentGoalType = 'daily';
+
+    // Load goals from API
+    async function loadGoals(type = null) {
+      try {
+        const url = type ? `/api/goals?type=${type}` : '/api/goals';
+        const response = await fetch(url);
+        const goals = await response.json();
+
+        // Group goals by type
+        const goalsByType = {
+          daily: goals.filter(g => g.goal_type === 'daily'),
+          weekly: goals.filter(g => g.goal_type === 'weekly'),
+          yearly: goals.filter(g => g.goal_type === 'yearly')
+        };
+
+        // Render all types
+        Object.keys(goalsByType).forEach(goalType => {
+          renderGoalsList(goalType, goalsByType[goalType]);
+        });
+      } catch (error) {
+        console.error('Error loading goals:', error);
+      }
+    }
+
+    function addGoal(type) {
+      const goal = prompt(`Enter a new ${type} goal:`);
+      if (goal) {
+        createGoal(goal, type);
+      }
+    }
+
+    async function createGoal(text, type) {
+      try {
+        const response = await fetch('/api/goals', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            text: text,
+            goal_type: type
+          })
+        });
+
+        if (response.ok) {
+          loadGoals(); // Reload all goals
+        }
+      } catch (error) {
+        console.error('Error creating goal:', error);
+      }
+    }
+
+    function renderGoalsList(type, goals) {
+      const list = document.getElementById(`${type}-goals-list`);
+
+      list.innerHTML = goals.map(goal => `
+        <div class="goal-item ${goal.done ? 'completed' : ''}" data-id="${goal.id}">
+          <input type="checkbox" class="goal-checkbox"
+            ${goal.done ? 'checked' : ''}
+            onchange="toggleGoal(${goal.id})">
+          <span class="goal-text" style="${goal.done ? 'text-decoration: line-through; color: #666;' : ''}">${goal.text}</span>
+          <span class="goal-date">${formatDate(goal.created)}</span>
+          <button class="goal-btn" onclick="deleteGoal(${goal.id})">×</button>
+        </div>
+      `).join('');
+    }
+
+    async function toggleGoal(id) {
+      try {
+        // First get the current goal to know its current state
+        const response = await fetch('/api/goals');
+        const goals = await response.json();
+        const goal = goals.find(g => g.id === id);
+
+        if (goal) {
+          const updateResponse = await fetch(`/api/goals/${id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              done: !goal.done
+            })
+          });
+
+          if (updateResponse.ok) {
+            loadGoals(); // Reload all goals
+          }
+        }
+      } catch (error) {
+        console.error('Error toggling goal:', error);
+      }
+    }
+
+    async function deleteGoal(id) {
+      if (confirm('Delete this goal?')) {
+        try {
+          const response = await fetch(`/api/goals/${id}`, {
+            method: 'DELETE'
+          });
+
+          if (response.ok) {
+            loadGoals(); // Reload all goals
+          }
+        } catch (error) {
+          console.error('Error deleting goal:', error);
+        }
+      }
+    }
+
+    // Clean up old goals
+    async function cleanupOldGoals() {
+      try {
+        await fetch('/api/goals/cleanup', { method: 'POST' });
+      } catch (error) {
+        console.error('Error cleaning up goals:', error);
+      }
+    }
+
+    // Sidebar toggle functionality
+    function initSidebarToggle() {
+      const sidebar = document.querySelector('.sidebar');
+      const toggleBtn = document.getElementById('sidebar-toggle');
+      const main = document.querySelector('main');
+
+      // Load saved state from localStorage
+      const isExpanded = localStorage.getItem('sidebarExpanded') === 'true';
+      if (isExpanded) {
+        sidebar.classList.add('expanded');
+        main.classList.add('expanded');
+      }
+
+      toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('expanded');
+        main.classList.toggle('expanded');
+        const expanded = sidebar.classList.contains('expanded');
+        localStorage.setItem('sidebarExpanded', expanded);
+      });
+    }
+
+    // Initial setup
+    initSidebarToggle();
+    loadCurrentUser();
+    setDateTime();
+    setProgress(false);
+    setDailyQuote();
+    loadGoals();
+  </script>
+</body>
+</html>
