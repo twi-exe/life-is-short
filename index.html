@@ -4,355 +4,37 @@
   <meta charset="UTF-8">
   <title>Life is Short – Progress Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      background: #f6f8fa;
-      color: #333;
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-    }
-    .sidebar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      height: 100vh;
-      width: 80px;
-      background: #fff;
-      border-right: 1px solid #e0e0e0;
-      box-shadow: 2px 0 8px rgba(80, 227, 194, 0.04);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding-top: 2rem;
-      z-index: 10;
-    }
-    .refresh-btn {
-      background: none;
-      border: none;
-      border-radius: 50%;
-      cursor: pointer;
-      width: 2.2rem;
-      height: 2.2rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 2rem;
-      transition: background 0.2s;
-      box-shadow: none;
-      padding: 0;
-    }
-    .refresh-btn svg {
-      display: block;
-    }
-    .refresh-btn:hover svg path,
-    .refresh-btn:hover svg polyline {
-      stroke: #357abd;
-    }
-    .refresh-btn:active svg {
-      opacity: 0.7;
-    }
-    .sidebar-title {
-      writing-mode: vertical-rl;
-      transform: rotate(180deg);
-      font-size: 1.1rem;
-      color: #357abd;
-      margin-bottom: 2rem;
-      letter-spacing: 0.08em;
-      font-weight: 600;
-      text-align: center;
-    }
-    main {
-      margin-left: 100px;
-      max-width: 1200px;  /* Increased from 800px */
-      width: calc(100% - 140px);
-      margin-top: 2rem;
-      padding: 0 20px;
-    }
-    .datetime {
-      font-size: 1rem;
-      color: #357abd;
-      margin-bottom: 1.2rem;
-      font-weight: 500;
-      letter-spacing: 0.01em;
-      text-align: left;
-    }
-    .progress-group {
-      margin-bottom: 1.5rem;
-    }
-    .progress-label {
-      font-weight: 500;
-      margin-bottom: 0.3rem;
-      font-size: 1rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      color: #357abd;
-    }
-    .progress-group {
-      margin-bottom: 2rem;
-    }
-    .progress-label {
-      font-weight: bold;
-      margin-bottom: 0.3rem;
-      font-size: 1.08rem;
-      text-align: right;
-    }
-    .progress-bar-bg {
-      width: calc(100% - 70px); /* Make room for percentage */
-      background: #e0e0e0;
-      border-radius: 30px;
-      height: 18px;
-      margin-bottom: 0.3rem;
-      height: 28px;
-      margin-bottom: 0.7rem;
-      position: relative;
-      overflow: hidden;
-      display: inline-block;
-    }
-    .progress-bar-fill {
-      background: #4A90E2;
-      height: 100%;
-      border-radius: 30px 0 0 30px;
-      width: 0;
-      transition: width 1.2s cubic-bezier(.4,2,.3,1);
-      position: absolute;
-      left: 0; top: 0;
-      display: flex;
-      align-items: center;
-    }
-    .progress-badge {
-      position: absolute;
-      right: -65px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #357abd;
-      font-weight: 600;
-      font-size: 0.95rem;
-      padding: 1px 8px;
-      min-width: 55px;
-      text-align: right;
-    }
-    .quote {
-      font-style: italic;
-      color: #666;
-      text-align: left;
-      margin-top: 2rem;
-      font-size: 1rem;
-      cursor: pointer;
-      user-select: all;
-      transition: background 0.2s, color 0.2s;
-      border-radius: 6px;
-      padding: 0.5rem 0.2rem;
-      border: 1px dashed #4A90E2;
-      background: #f6f8fa;
-      max-width: 90%;
-    }
-    .quote.copied {
-      background: #d1f7c4;
-      color: #2d7a2d;
-      border: 1px solid #b6e7a0;
-    }
-    footer {
-      max-width: 1200px;
-      width: calc(100% - 140px);
-      margin-left: 100px;
-      padding: 1.2rem 20px;
-    }
-    .goals-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 1.5rem;
-      background: none;
-      box-shadow: none;
-      padding: 0;
-    }
-    .goals-section {
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      padding: 1rem;
-    }
-    .goals-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-      padding-bottom: 0.5rem;
-      border-bottom: 1px solid #e0e0e0;
-    }
-    .goals-header h3 {
-      margin: 0;
-      color: #357abd;
-      font-size: 1.1rem;
-    }
-    .goals-list {
-      max-height: 300px;
-      overflow-y: auto;
-    }
-    .goal-item {
-      display: flex;
-      align-items: center;
-      gap: 0.8rem;
-      padding: 0.8rem;
-      background: #f9f9f9;
-      border-radius: 4px;
-      margin-bottom: 0.5rem;
-    }
-    .goal-checkbox {
-      min-width: 18px;
-      height: 18px;
-    }
-    .goal-text {
-      flex: 1;
-      font-size: 0.95rem;
-    }
-    .goal-date {
-      font-size: 0.8rem;
-      color: #666;
-    }
-    .goal-btn {
-      background: none;
-      border: none;
-      color: #666;
-      cursor: pointer;
-      font-size: 1.2rem;
-      padding: 0 0.3rem;
-    }
-    .small-btn {
-      background: #4A90E2;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      padding: 0.4rem 0.8rem;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-    @media (max-width: 700px) {
-      .sidebar {
-        width: 54px;
-        padding-top: 1rem;
-      }
-      main {
-        margin-left: 62px;
-        width: calc(100% - 82px);
-        padding: 0 10px;
-      }
-      .progress-label {
-        font-size: 0.95rem;
-      }
-      .progress-bar-bg {
-        height: 14px;
-      }
-      .quote {
-        font-size: 0.95rem;
-        margin: 1.5rem 0;
-        padding: 1rem;
-      }
-      footer {
-        margin-left: 62px;
-        width: calc(100% - 82px);
-        padding: 1rem 10px;
-      }
-      .goals-container {
-        margin-top: 1rem;
-        padding: 1rem;
-      }
-      .goals-header h3 {
-        font-size: 1rem;
-      }
-      .goals-list {
-        max-height: 160px;
-      }
-      .goal-item {
-        padding: 0.8rem;
-      }
-    }
-    @media (max-width: 430px) {
-      .sidebar {
-        width: 40px;
-        padding-top: 0.5rem;
-      }
-      main {
-        margin-left: 46px;
-        width: calc(100% - 56px);
-        padding: 0 5px;
-      }
-      .datetime {
-        font-size: 0.85rem;
-        margin-bottom: 1rem;
-      }
-      .progress-group {
-        margin-bottom: 1rem;
-      }
-      .progress-label {
-        font-size: 0.85rem;
-      }
-      .progress-bar-bg {
-        height: 12px;
-        width: calc(100% - 60px);
-      }
-      .progress-badge {
-        font-size: 0.8rem;
-        padding: 1px 6px;
-      }
-      .small-btn {
-        padding: 0.3rem 0.6rem;
-        font-size: 0.8rem;
-      }
-      .goals-list {
-        max-height: 140px;
-      }
-      .goal-item {
-        padding: 0.6rem;
-        font-size: 0.85rem;
-      }
-      .quote {
-        font-size: 0.85rem;
-        padding: 0.8rem;
-        margin: 1rem 0;
-      }
-      footer {
-        font-size: 0.8rem;
-        margin-left: 46px;
-        padding: 0.8rem 5px;
-      }
-    }
-
-    /* Add touch-friendly styles */
-    @media (pointer: coarse) {
-      .refresh-btn {
-        padding: 0.8rem;
-      }
-      .small-btn {
-        min-height: 36px;
-        min-width: 36px;
-      }
-      .goal-item input[type="checkbox"] {
-        min-width: 20px;
-        min-height: 20px;
-      }
-      .quote {
-        padding: 1rem;
-        margin: 1.5rem 0;
-      }
-    }
-  </style>
-  <!-- Font Awesome for refresh icon -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="static/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
   <div class="sidebar">
-<button class="refresh-btn" id="refresh-btn" title="Refresh progress" aria-label="Refresh">
-  <i class="fa-solid fa-rotate-left" style="color:#888; font-size:22px;"></i>
-</button>
-    <div class="sidebar-title">Life is Short</div>
+    <div class="sidebar-header">
+      <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle sidebar" aria-label="Toggle sidebar">
+        <div class="sidebar-title-vertical">Life is Short</div>
+      </button>
+    </div>
+
+    <div class="sidebar-content">
+      <button class="refresh-btn" id="refresh-btn" title="Refresh progress" aria-label="Refresh">
+        <i class="fa-solid fa-rotate-left"></i>
+      </button>
+      <button class="sidebar-link" onclick="toggleCalendar()" title="Life Calendar" aria-label="Life Calendar">
+        <i class="fa-solid fa-calendar"></i>
+      </button>
+      <div class="user-info" id="user-info">
+        <!-- User info will be loaded here -->
+      </div>
+    </div>
   </div>
-  <header>
-  </header>
+
   <main>
     <div class="datetime" id="datetime"></div>
+
     <div class="progress-group">
       <div class="progress-label" id="progress-label-year">Loading...</div>
       <div class="progress-bar-bg">
@@ -360,6 +42,7 @@
         <span class="progress-badge" id="progress-badge-year"></span>
       </div>
     </div>
+
     <div class="progress-group">
       <div class="progress-label" id="progress-label-month">Loading...</div>
       <div class="progress-bar-bg">
@@ -367,6 +50,7 @@
         <span class="progress-badge" id="progress-badge-month"></span>
       </div>
     </div>
+
     <div class="progress-group">
       <div class="progress-label" id="progress-label-week">Loading...</div>
       <div class="progress-bar-bg">
@@ -383,7 +67,7 @@
         </div>
         <div id="daily-goals-list" class="goals-list"></div>
       </div>
-      
+
       <div class="goals-section">
         <div class="goals-header">
           <h3>Weekly Goals</h3>
@@ -391,30 +75,57 @@
         </div>
         <div id="weekly-goals-list" class="goals-list"></div>
       </div>
-      
+
       <div class="goals-section">
+        <div class="goals-header">
+          <h3>Monthly Goals</h3>
+          <button class="small-btn" onclick="addGoal('monthly')">+</button>
+        </div>
+        <div id="monthly-goals-list" class="goals-list"></div>
+      </div>
+
+      <div class="goals-section yearly-goals">
         <div class="goals-header">
           <h3>Yearly Goals</h3>
           <button class="small-btn" onclick="addGoal('yearly')">+</button>
         </div>
         <div id="yearly-goals-list" class="goals-list"></div>
       </div>
-    <div class="progress-group">
-      <div class="progress-label" id="progress-label-year">Loading...</div>
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill" id="progress-bar-year"></div>
-      </div>
     </div>
-    <div class="progress-group">
-      <div class="progress-label" id="progress-label-month">Loading...</div>
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill" id="progress-bar-month"></div>
+
+    <div class="calendar-container" id="calendar-container" style="display: none;">
+      <h1>Life Calendar</h1>
+      <p class="calendar-description">
+        Each square represents one week of your life. The darker squares show weeks that have passed.
+        <br>
+        <strong id="weeks-lived">0</strong> weeks lived out of <strong id="total-weeks">0</strong> weeks in a typical lifespan.
+      </p>
+
+      <div class="calendar-controls">
+        <label for="birthdate">Birth Date:</label>
+        <input type="date" id="birthdate" value="1990-01-01">
+        <label for="lifespan">Expected Lifespan (years):</label>
+        <input type="number" id="lifespan" value="80" min="1" max="120">
+        <button id="update-calendar" class="small-btn">Update</button>
       </div>
-    </div>
-    <div class="progress-group">
-      <div class="progress-label" id="progress-label-week">Loading...</div>
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill" id="progress-bar-week"></div>
+
+      <div class="calendar-grid" id="calendar-grid">
+        <!-- Calendar weeks will be generated here -->
+      </div>
+
+      <div class="calendar-stats">
+        <div class="stat-item">
+          <div class="stat-number" id="years-lived">0</div>
+          <div class="stat-label">Years Lived</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="years-remaining">0</div>
+          <div class="stat-label">Years Remaining</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="percentage-lived">0%</div>
+          <div class="stat-label">Life Completed</div>
+        </div>
       </div>
     </div>
 
@@ -422,9 +133,23 @@
       "The trouble is, you think you have time." – Jack Kornfield
     </div>
   </main>
+
   <footer>
     &copy; 2026 twi-exe &mdash; Make every day count.
   </footer>
+
+  <!-- Custom dialog for adding goals -->
+  <dialog id="add-goal-dialog" class="goal-dialog">
+    <form method="dialog" id="add-goal-form">
+      <h3 id="dialog-title">Add New Goal</h3>
+      <label for="goal-text">Goal Description:</label>
+      <input type="text" id="goal-text" required placeholder="Enter your goal...">
+      <div class="dialog-buttons">
+        <button type="submit" class="dialog-btn primary">Add Goal</button>
+        <button type="button" class="dialog-btn secondary" onclick="closeGoalDialog()">Cancel</button>
+      </div>
+    </form>
+  </dialog>
 
   <script>
     // Show current date/time
@@ -633,103 +358,284 @@
       });
     }
 
-    // Goals management
-    let currentGoalType = 'daily';
-    const goalsData = {
-      daily: JSON.parse(localStorage.getItem('dailyGoals') || '[]'),
-      weekly: JSON.parse(localStorage.getItem('weeklyGoals') || '[]'),
-      yearly: JSON.parse(localStorage.getItem('yearlyGoals') || '[]')
-    };
+    // User management
+    let currentUser = { is_anonymous: true, display_name: 'Guest' };
 
-    // Tab switching
-    document.querySelector('.goals-tabs').addEventListener('click', (e) => {
-      if (e.target.classList.contains('tab-btn')) {
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        e.target.classList.add('active');
-        currentGoalType = e.target.dataset.tab;
-        document.getElementById('goals-title').textContent = 
-          currentGoalType.charAt(0).toUpperCase() + currentGoalType.slice(1) + ' Goals';
-        renderGoals();
+    // Goals management
+    let goals = [];
+    let currentGoalType = '';
+
+    function loadGoals() {
+      goals = JSON.parse(localStorage.getItem('goals') || '[]');
+      renderAllGoals();
+    }
+
+    function saveGoals() {
+      localStorage.setItem('goals', JSON.stringify(goals));
+    }
+
+    function renderAllGoals() {
+      const goalsByType = { daily: [], weekly: [], monthly: [], yearly: [] };
+      goals.forEach(goal => {
+        if (goalsByType[goal.goal_type]) {
+          goalsByType[goal.goal_type].push(goal);
+        }
+      });
+      Object.keys(goalsByType).forEach(type => {
+        renderGoalsList(type, goalsByType[type]);
+      });
+    }
+
+    function loadCurrentUser() {
+      updateUserInterface();
+    }
+
+    function updateUserInterface() {
+      const userInfo = document.getElementById('user-info');
+      userInfo.innerHTML = `
+        <div class="username">${currentUser.display_name}</div>
+        <div class="guest-badge">GUEST</div>
+      `;
+    }
+
+    async function logout() {
+      try {
+        await fetch('/logout', { method: 'POST' });
+        currentUser = { is_anonymous: true };
+        updateUserInterface();
+        loadGoals(); // Reload goals for guest session
+      } catch (error) {
+        console.error('Error logging out:', error);
       }
-    });
+    }
+
+    function showConvertGuestDialog() {
+      const username = prompt('Choose a username (min 3 characters):');
+      if (!username || username.length < 3) return;
+      
+      const password = prompt('Choose a password (min 6 characters):');
+      if (!password || password.length < 6) return;
+      
+      convertGuest(username, password);
+    }
+
+    async function convertGuest(username, password) {
+      try {
+        const response = await fetch('/api/user/convert-guest', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        
+        if (response.ok) {
+          currentUser = await response.json();
+          updateUserInterface();
+          alert('Account created successfully!');
+        } else {
+          const error = await response.json();
+          alert(error.error || 'Error creating account');
+        }
+      } catch (error) {
+        console.error('Error converting guest:', error);
+        alert('Network error. Please try again.');
+      }
+    }
+
+
 
     function addGoal(type) {
-      const goal = prompt(`Enter a new ${type} goal:`);
-      if (goal) {
-        const newGoal = {
-          id: Date.now(),
-          text: goal,
-          done: false,
-          created: new Date().toISOString(),
-          completed: null
-        };
-        goalsData[type].push(newGoal);
-        saveAndRenderGoals(type);
-      }
+      currentGoalType = type;
+      document.getElementById('dialog-title').textContent = `Add New ${type.charAt(0).toUpperCase() + type.slice(1)} Goal`;
+      document.getElementById('goal-text').value = '';
+      document.getElementById('add-goal-dialog').showModal();
     }
 
-    function saveAndRenderGoals(type) {
-      localStorage.setItem(`${type}Goals`, JSON.stringify(goalsData[type]));
-      renderGoalsList(type);
+    function createGoal(text, type) {
+      const newGoal = {
+        id: Date.now(),
+        text: text,
+        goal_type: type,
+        done: false,
+        created: new Date().toISOString()
+      };
+      goals.push(newGoal);
+      saveGoals();
+      loadGoals();
     }
 
-    function renderGoalsList(type) {
+    function renderGoalsList(type, goals) {
       const list = document.getElementById(`${type}-goals-list`);
-      const goals = goalsData[type];
-      
+
       list.innerHTML = goals.map(goal => `
         <div class="goal-item ${goal.done ? 'completed' : ''}" data-id="${goal.id}">
-          <input type="checkbox" class="goal-checkbox" 
-            ${goal.done ? 'checked' : ''} 
-            onchange="toggleGoal('${type}', ${goal.id})">
+          <input type="checkbox" class="goal-checkbox"
+            ${goal.done ? 'checked' : ''}
+            onchange="toggleGoal(${goal.id})">
           <span class="goal-text" style="${goal.done ? 'text-decoration: line-through; color: #666;' : ''}">${goal.text}</span>
           <span class="goal-date">${formatDate(goal.created)}</span>
-          <button class="goal-btn" onclick="deleteGoal('${type}', ${goal.id})">×</button>
+          <button class="goal-btn" onclick="deleteGoal(${goal.id})">×</button>
         </div>
       `).join('');
     }
 
-    function toggleGoal(type, id) {
-      const goal = goalsData[type].find(g => g.id === id);
+    function toggleGoal(id) {
+      const goal = goals.find(g => g.id === id);
       if (goal) {
         goal.done = !goal.done;
-        goal.completed = goal.done ? new Date().toISOString() : null;
-        saveAndRenderGoals(type);
+        saveGoals();
+        loadGoals();
       }
     }
 
-    function deleteGoal(type, id) {
+    function deleteGoal(id) {
       if (confirm('Delete this goal?')) {
-        goalsData[type] = goalsData[type].filter(g => g.id !== id);
-        saveAndRenderGoals(type);
+        goals = goals.filter(g => g.id !== id);
+        saveGoals();
+        loadGoals();
       }
     }
 
-    // Initialize all goal lists
-    function initializeGoals() {
-      ['daily', 'weekly', 'yearly'].forEach(type => {
-        renderGoalsList(type);
+    // Clean up old goals
+    async function cleanupOldGoals() {
+      try {
+        await fetch('/api/goals/cleanup', { method: 'POST' });
+      } catch (error) {
+        console.error('Error cleaning up goals:', error);
+      }
+    }
+
+    // Sidebar toggle functionality
+    function initSidebarToggle() {
+      const sidebar = document.querySelector('.sidebar');
+      const toggleBtn = document.getElementById('sidebar-toggle');
+      const main = document.querySelector('main');
+
+      // Load saved state from localStorage
+      const isExpanded = localStorage.getItem('sidebarExpanded') === 'true';
+      if (isExpanded) {
+        sidebar.classList.add('expanded');
+        main.classList.add('expanded');
+      }
+
+      toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('expanded');
+        main.classList.toggle('expanded');
+        const expanded = sidebar.classList.contains('expanded');
+        localStorage.setItem('sidebarExpanded', expanded);
       });
     }
 
-    // Clean up old daily goals at midnight
-    function cleanupOldGoals() {
-      const today = new Date().setHours(0,0,0,0);
-      goalsData.daily = goalsData.daily.filter(goal => {
-        const goalDate = new Date(goal.created).setHours(0,0,0,0);
-        return goalDate >= today;
-      });
-      localStorage.setItem('dailyGoals', JSON.stringify(goalsData.daily));
+    // Goal dialog functionality
+    function closeGoalDialog() {
+      document.getElementById('add-goal-dialog').close();
     }
 
-    // Initialize goals
-    cleanupOldGoals();
-    initializeGoals();
+    document.getElementById('add-goal-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const goalText = document.getElementById('goal-text').value.trim();
+      if (goalText) {
+        createGoal(goalText, currentGoalType);
+        closeGoalDialog();
+      }
+    });
+
+    // Calendar functionality
+    function toggleCalendar() {
+      const calendar = document.getElementById('calendar-container');
+      const isVisible = calendar.style.display !== 'none';
+      calendar.style.display = isVisible ? 'none' : 'block';
+      if (!isVisible) {
+        // Initialize calendar if showing
+        const birthdate = document.getElementById('birthdate').value;
+        const lifespan = parseInt(document.getElementById('lifespan').value);
+        generateCalendar(birthdate, lifespan);
+      }
+    }
+
+    function generateCalendar(birthDate, lifespanYears) {
+      const grid = document.getElementById('calendar-grid');
+      const now = new Date();
+      const birth = new Date(birthDate);
+
+      // Clear existing grid
+      grid.innerHTML = '';
+
+      let totalWeeksLived = 0;
+
+      // Create rows for each year of life
+      for (let year = 0; year < lifespanYears; year++) {
+        const yearStart = new Date(birth);
+        yearStart.setFullYear(birth.getFullYear() + year);
+
+        const yearEnd = new Date(birth);
+        yearEnd.setFullYear(birth.getFullYear() + year + 1);
+
+        // Calculate weeks in this year
+        const weeksInYear = Math.round((yearEnd - yearStart) / (1000 * 60 * 60 * 24 * 7));
+
+        // Create year container
+        const yearContainer = document.createElement('div');
+        yearContainer.className = 'calendar-year';
+
+        // Create week elements for this year
+        for (let week = 0; week < weeksInYear; week++) {
+          const weekStart = new Date(yearStart);
+          weekStart.setDate(yearStart.getDate() + (week * 7));
+
+          const weekEnd = new Date(weekStart);
+          weekEnd.setDate(weekStart.getDate() + 7);
+
+          const weekElement = document.createElement('div');
+          weekElement.className = 'calendar-week';
+
+          // Check if this week has been lived
+          if (weekEnd <= now) {
+            weekElement.classList.add('lived');
+            totalWeeksLived++;
+          } else if (weekStart <= now && now < weekEnd) {
+            weekElement.classList.add('current');
+            totalWeeksLived++;
+          } else {
+            weekElement.classList.add('remaining');
+          }
+
+          yearContainer.appendChild(weekElement);
+        }
+
+        grid.appendChild(yearContainer);
+      }
+
+      // Calculate total possible weeks
+      const lifespanEnd = new Date(birth);
+      lifespanEnd.setFullYear(birth.getFullYear() + lifespanYears);
+      const totalWeeks = Math.round((lifespanEnd - birth) / (1000 * 60 * 60 * 24 * 7));
+
+      // Update stats
+      const yearsLived = Math.floor(totalWeeksLived / 52.14); // Approximate
+      const yearsRemaining = lifespanYears - yearsLived;
+      const percentageLived = ((totalWeeksLived / totalWeeks) * 100).toFixed(1);
+
+      document.getElementById('weeks-lived').textContent = totalWeeksLived.toLocaleString();
+      document.getElementById('total-weeks').textContent = totalWeeks.toLocaleString();
+      document.getElementById('years-lived').textContent = yearsLived;
+      document.getElementById('years-remaining').textContent = yearsRemaining;
+      document.getElementById('percentage-lived').textContent = percentageLived + '%';
+    }
+
+    // Event listener for calendar update
+    document.getElementById('update-calendar').addEventListener('click', function() {
+      const birthdate = document.getElementById('birthdate').value;
+      const lifespan = parseInt(document.getElementById('lifespan').value);
+      generateCalendar(birthdate, lifespan);
+    });
 
     // Initial setup
+    initSidebarToggle();
+    loadCurrentUser();
     setDateTime();
     setProgress(false);
     setDailyQuote();
+    loadGoals();
   </script>
 </body>
 </html>
