@@ -35,6 +35,7 @@ jobs:
           mkdir -p docs
           cp -r static docs/
           cp templates/index.html docs/index.html || true
+          cp templates/index.html index.html || true
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

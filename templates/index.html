@@ -23,6 +23,7 @@
       <button class="refresh-btn" id="refresh-btn" title="Refresh progress" aria-label="Refresh">
         <i class="fa-solid fa-rotate-left"></i>
       </button>
+      <input type="color" id="accent-color-picker" title="Choose accent color" value="#f59e0b" style="width: 40px; height: 40px; border: none; border-radius: 50%; cursor: pointer; margin-bottom: 1rem;">
       <button class="sidebar-link" onclick="toggleCalendar()" title="Life Calendar" aria-label="Life Calendar">
         <i class="fa-solid fa-calendar"></i>
       </button>
@@ -629,9 +630,26 @@
       generateCalendar(birthdate, lifespan);
     });
 
+    // Accent color functionality
+    function loadAccentColor() {
+      const savedColor = localStorage.getItem('accentColor') || '#f59e0b';
+      document.documentElement.style.setProperty('--accent-color', savedColor);
+      document.getElementById('accent-color-picker').value = savedColor;
+    }
+
+    function saveAccentColor(color) {
+      localStorage.setItem('accentColor', color);
+      document.documentElement.style.setProperty('--accent-color', color);
+    }
+
+    document.getElementById('accent-color-picker').addEventListener('input', function(e) {
+      saveAccentColor(e.target.value);
+    });
+
     // Initial setup
     initSidebarToggle();
     loadCurrentUser();
+    loadAccentColor();
     setDateTime();
     setProgress(false);
     setDailyQuote();
